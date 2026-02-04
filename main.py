@@ -1,9 +1,35 @@
-import os
+import eel
+import threading
 
-import eel 
+from engine.features import playAssistantSound
+from engine.hotword import hotword_detect
 
-eel.init("www")
 
-os.system('start msedge.exe --app="http://127.0.0.1:5500/www/index.html" ')
+def start_hotword():
+    """Run hotword engine in background thread"""
+    hotword_detect()
 
-eel.start('index.html', mode=None, host='localhost', block=True)
+
+def start():
+    eel.init("www")
+
+    # 🔊 Startup sound
+    playAssistantSound()
+
+    # 🔥 Start hotword listener in background
+    hotword_thread = threading.Thread(target=start_hotword, daemon=True)
+    hotword_thread.start()
+
+    # 🌐 Start UI
+    eel.start(
+        "index.html",
+
+    host="localhost",
+        port=8000,
+        block=True
+    )
+
+
+if __name__ == "__main__":
+    start()
+
