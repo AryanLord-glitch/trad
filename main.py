@@ -17,6 +17,8 @@ def start():
     playAssistantSound()
 
     # 🔥 Start hotword listener in background
+    
+
     hotword_thread = threading.Thread(target=start_hotword, daemon=True)
     hotword_thread.start()
 

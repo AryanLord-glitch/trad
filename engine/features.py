@@ -6,12 +6,11 @@ import pyautogui
 import pyperclip
 import webbrowser
 import urllib.parse
-
-
+import psutil
 
 from engine.command import speak
 from engine.config import ASSISTANT_NAME
-
+from datetime import datetime
 
 # =========================
 # 🔊 Assistant startup sound
@@ -222,7 +221,6 @@ def whatsappCommand(query):
 
     return False
 
-
 # =========================
 # 🌦️ WEATHER UPDATE
 # =========================
@@ -241,7 +239,6 @@ def checkWeather(query):
 
     webbrowser.open(url)
     return True
-
 
 # =========================
 # 🔊 VOLUME CONTROL
@@ -271,6 +268,7 @@ def controlVolume(query):
         return True
 
     return False
+
 # =========================
 # 💡 BRIGHTNESS CONTROL (STABLE)
 # =========================
@@ -300,5 +298,120 @@ def controlBrightness(query):
         print("Brightness Error:", e)
         speak("Brightness control failed")
 
+    return False 
+
+# =========================
+# 📸 SCREENSHOT FEATURE
+# =========================
+def takeScreenshot():
+    try:
+        filename = f"screenshot_{int(time.time())}.png"
+        path = os.path.join(os.getcwd(), filename)
+
+        screenshot = pyautogui.screenshot()
+        screenshot.save(path)
+
+        speak("Screenshot captured successfully")
+        eel.DisplayMessage(f"Screenshot saved as {filename}")
+        return True
+
+    except Exception as e:
+        print("Screenshot Error:", e)
+        speak("Unable to take screenshot")
+        return False
+
+
+# =========================
+# 🖥️ SYSTEM CONTROL
+# =========================
+def systemControl(query):
+    if "shutdown" in query:
+        speak("Shutting down the system in 5 seconds")
+        eel.DisplayMessage("System shutting down...")
+        os.system("shutdown /s /t 5")
+        return True
+
+    if "restart" in query:
+        speak("Restarting the system in 5 seconds")
+        eel.DisplayMessage("System restarting...")
+        os.system("shutdown /r /t 5")
+        return True
+
+    if "lock" in query:
+        speak("Locking the system")
+        eel.DisplayMessage("System locked")
+        os.system("rundll32.exe user32.dll,LockWorkStation")
+        return True
+
     return False
 
+
+# =========================
+# 🧠 SYSTEM MONITOR
+# =========================
+def systemMonitor(query):
+    if "cpu" in query:
+        cpu = psutil.cpu_percent(interval=1)
+        speak(f"CPU usage is {cpu} percent")
+        eel.DisplayMessage(f"CPU Usage: {cpu}%")
+        return True
+
+    if "ram" in query or "memory" in query:
+        memory = psutil.virtual_memory().percent
+        speak(f"RAM usage is {memory} percent")
+        eel.DisplayMessage(f"RAM Usage: {memory}%")
+        return True
+
+    if "system status" in query:
+        cpu = psutil.cpu_percent(interval=1)
+        memory = psutil.virtual_memory().percent
+        speak(f"CPU is {cpu} percent and RAM is {memory} percent")
+        eel.DisplayMessage(f"CPU: {cpu}% | RAM: {memory}%")
+        return True
+
+    return False
+
+# =========================
+# 🕒 DATE & TIME FEATURE
+# =========================
+def dateTimeCommand(query):
+    now = datetime.now()
+
+    if "time" in query:
+        current_time = now.strftime("%I:%M %p")
+        speak(f"The current time is {current_time}")
+        eel.DisplayMessage(f"⏰ Time: {current_time}")
+        return True
+
+    if "date" in query:
+        current_date = now.strftime("%d %B %Y")
+        speak(f"Today's date is {current_date}")
+        eel.DisplayMessage(f"📅 Date: {current_date}")
+        return True
+
+    return False
+
+    # =========================
+# 🤖 AI CHATBOT (HuggingChat)
+# =========================
+def aiChatBot(query):
+    try:
+        from hugchat import hugchat
+        from hugchat.login import Login
+
+        chatbot = hugchat.ChatBot(cookie_path="engine/cookies.json")
+
+        id = chatbot.new_conversation()
+        chatbot.change_conversation(id)
+
+        response = chatbot.chat(query)
+
+        speak(response)
+        eel.DisplayMessage(response)
+
+        return True
+
+    except Exception as e:
+        print("AI Error:", e)
+        speak("AI service is not available right now")
+        return False

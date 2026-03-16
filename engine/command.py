@@ -2,7 +2,6 @@ import eel
 import speech_recognition as sr
 import time
 
-
 # =========================
 # 🔊 SPEAK
 # =========================
@@ -33,11 +32,41 @@ def takecommand():
         eel.DisplayMessage("Say that again please...")
         return ""
 
+# =========================
+# 🤖 AI CHATBOT
+# =========================
+def aiChatBot(query):
+    try:
+        from hugchat import hugchat
+
+        chatbot = hugchat.ChatBot(cookie_path="engine/cookies.json")
+
+        conversation = chatbot.new_conversation()
+        chatbot.change_conversation(conversation)
+
+        response = chatbot.chat(query)
+
+        response_text = str(response)
+
+        # show in UI
+        eel.DisplayMessage(response_text)
+
+        # speak response
+        speak(response_text)
+
+        return True
+
+    except Exception as e:
+        print("AI Error:", e)
+        speak("AI service is unavailable right now")
+        return False
+
 
 # =========================
 # 🧠 CORE COMMAND BRAIN
 # =========================
 def processCommand(query):
+
     from engine.features import (
         openCommand,
         playCommand,
@@ -46,13 +75,34 @@ def processCommand(query):
         whatsappCommand,
         checkWeather,
         controlVolume,
-        controlBrightness
+        controlBrightness,
+        dateTimeCommand,
+        takeScreenshot,
+        systemControl,
+        systemMonitor
     )
 
     reply = "Command not supported yet"
 
+    # 📸 Screenshot
+    if "screenshot" in query:
+        if takeScreenshot():
+            reply = "Screenshot captured"
+
+    # 🖥️ System Control
+    elif systemControl(query):
+        reply = "System command executed"
+
+    # 🧠 System Monitor
+    elif systemMonitor(query):
+        reply = "System status provided"
+
+    # 🕒 Date & Time
+    elif dateTimeCommand(query):
+        reply = "Date or Time provided"
+
     # 🎧 Spotify
-    if "spotify" in query:
+    elif "spotify" in query:
         playSpotify(query)
         reply = "Playing on Spotify"
 
@@ -87,6 +137,11 @@ def processCommand(query):
         playCommand(query)
         reply = "Playing on YouTube"
 
+    # 🤖 AI CHATBOT (fallback)
+    else:
+        if aiChatBot(query):
+            return "AI responded"
+
     speak(reply)
     return reply
 
@@ -96,6 +151,7 @@ def processCommand(query):
 # =========================
 @eel.expose
 def allCommands():
+
     query = takecommand()
 
     if query == "":
@@ -103,8 +159,10 @@ def allCommands():
         return
 
     reply = processCommand(query)
+
     time.sleep(1)
     eel.ShowHood()
+
     return reply
 
 
@@ -113,6 +171,9 @@ def allCommands():
 # =========================
 @eel.expose
 def textCommand(query):
+
     query = query.lower()
+
     reply = processCommand(query)
+
     return reply

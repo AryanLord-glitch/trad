@@ -21,6 +21,7 @@ $(document).ready(function () {
 
     /* ================= CHAT HISTORY ================= */
     function addMessage(text, sender) {
+
         const msgClass = sender === "user"
             ? "sender_message ms-auto"
             : "receiver_message me-auto";
@@ -33,6 +34,16 @@ $(document).ready(function () {
         $("#chat-history").append(html);
         $("#chat-history").scrollTop($("#chat-history")[0].scrollHeight);
     }
+
+
+    /* ================= PYTHON -> UI MESSAGE ================= */
+
+    eel.expose(DisplayMessage);
+
+    function DisplayMessage(message) {
+        addMessage(message, "bot");
+    }
+
 
     /* ================= MIC BUTTON ================= */
     $("#MicBtn").on("click", async function () {
@@ -60,6 +71,7 @@ $(document).ready(function () {
         }
     });
 
+
     /* ================= CHAT BUTTON ================= */
     $("#ChatBtn").on("click", function () {
         $("#ChatSection").fadeToggle(200);
@@ -67,9 +79,12 @@ $(document).ready(function () {
         $("#SiriWave").hide();
     });
 
-    /* ================= TEXT COMMAND (ENTER KEY) ================= */
+
+    /* ================= TEXT COMMAND ================= */
     $("#chatbox").on("keypress", async function (e) {
+
         if (e.which === 13) {
+
             const text = $("#chatbox").val().trim();
             if (!text) return;
 
@@ -77,14 +92,22 @@ $(document).ready(function () {
             $("#chatbox").val("");
 
             try {
+
                 const reply = await eel.textCommand(text)();
-                addMessage(reply, "bot");
+
+                if (reply) {
+                    addMessage(reply, "bot");
+                }
+
             } catch (err) {
+
                 addMessage("Error executing command", "bot");
                 console.error(err);
+
             }
+
         }
+
     });
 
 });
-
